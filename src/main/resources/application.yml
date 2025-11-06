@@ -1,0 +1,12 @@
+server:
+  port: 8089
+    
+
+spring:
+  application:
+    name: emp-mongo-service
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: employeedb
