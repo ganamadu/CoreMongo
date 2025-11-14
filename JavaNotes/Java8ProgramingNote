@@ -1,0 +1,67 @@
+To convert an IntStream to a List in Java, follow these steps:
+Box the IntStream: Since List objects cannot directly hold primitive int values, you need to convert the IntStream (which contains primitive ints) into a Stream<Integer> (which contains Integer objects, the wrapper class for int). This process is called boxing and is done using the boxed() method.
+Collect into a List: Once you have a Stream<Integer>, you can collect its elements into a List using the collect() method with Collectors.toList().
+List<Integer> intList = IntStream.range(1,100).boxed().collect(Collectors.toList());
+
+Print the name of all departments in the organization?
+Use distinct() method after calling map(Employee::getDepartment) on the stream. It will return unique departments.
+employeeList.stream()
+            .map(Employee::getDepartment)
+            .distinct()
+            .forEach(System.out::println);
+
+
+Get the details of highest paid employee in the organization?
+Use Collectors.maxBy() method which returns maximum element wrapped in an Optional object based on supplied Comparator.
+Optional<Employee> highestPaidEmployeeWrapper=
+employeeList.stream().collect(Collectors.maxBy(Comparator.comparingDouble(Employee::getSalary)));
+Employee highestPaidEmployee = highestPaidEmployeeWrapper.get();
+
+
+Get the names of all employees who have joined after 2015?
+For such queries which require filtering of input elements, use Stream.filter() method which filters input elements according to supplied Predicate.
+employeeList.stream()
+            .filter(e -> e.getYearOfJoining() > 2015)
+            .map(Employee::getName)
+            .forEach(System.out::println);
+
+
+Count the number of employees in each department?
+This query is same here we are grouping the elements by department.
+Map<String, Long> employeeCountByDepartment=
+employeeList.stream().collect(Collectors.groupingBy(Employee::getDepartment, Collectors.counting()));
+Set<Entry<String, Long>> entrySet = employeeCountByDepartment.entrySet();
+for (Entry<String, Long> entry : entrySet)
+{
+    System.out.println(entry.getKey()+" : "+entry.getValue());
+}
+
+
+What is the average salary of each department?
+Use the same method as in the above query 3.6, but here pass Collectors.averagingDouble(Employee::getSalary) as second argument to Collectors.groupingBy() method.
+For this query, sort employeeList by yearOfJoining in natural order and first employee will have most working experience in the organization. To solve this query, we will be using sorted() and findFirst() methods of Stream.
+Optional<Employee> seniorMostEmployeeWrapper=
+employeeList.stream().sorted(Comparator.comparingInt(Employee::getYearOfJoining)).findFirst();
+Employee seniorMostEmployee = seniorMostEmployeeWrapper.get();
+
+
+How many male and female employees are there in the sales and marketing team?
+This query is same as query 3.1, but here use filter() method to filter sales and marketing employees.
+Map<String, Long> countMaleFemaleEmployeesInSalesMarketing=
+employeeList.stream()
+            .filter(e -> e.getDepartment()=="Sales And Marketing")
+            .collect(Collectors.groupingBy(Employee::getGender, Collectors.counting()));
+
+System.out.println(countMaleFemaleEmployeesInSalesMarketing);
+
+
+What is the average salary and total salary of the whole organization?
+For this query, we use Collectors.summarizingDouble() on Employee::getSalary which will return statistics of the employee salary like max, min, average and total.
+DoubleSummaryStatistics employeeSalaryStatistics=
+employeeList.stream().collect(Collectors.summarizingDouble(Employee::getSalary));
+System.out.println("Average Salary = "+employeeSalaryStatistics.getAverage());
+System.out.println("Total Salary = "+employeeSalaryStatistics.getSum());
+
+
+
+

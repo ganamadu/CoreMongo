@@ -1,0 +1,43 @@
+Microservices Questions
+Microservices
+What are microservices?
+Microservices architecture decomposes a monolithic application into smaller, independently deployable services. Each service is responsible for a specific business capability.
+What are the advantages and challenges of microservices?
+Advantages:
+Independent deployment and scaling.
+Technology-agnostic development.
+Fault isolation and easier debugging.
+Challenges:
+Distribution complexity.
+Network latency and data consistency issues.
+Monitoring and security concerns.
+What is the role of Spring Cloud in microservices?
+Spring Cloud provides tools for building and managing distributed systems, including:
+Service Discovery (Eureka).
+Load Balancing (Ribbon).
+Circuit Breakers (Hystrix, Resilience4j).
+Distributed Tracing (Zipkin, Sleuth).
+Configuration Management (Spring Cloud Config).
+How does service discovery work in Spring Cloud?
+Components of service discovery:
+Service Registry (e.g., Eureka): Stores service metadata (e.g., IP, port).
+Services register/unregister automatically.
+Clients discover services dynamically by querying the registry.
+What is the API Gateway pattern and its role in microservices?
+The API Gateway acts as a single point of entry for clients to delegate requests to microservices.
+Authentication, load balancing, caching, logging, and rate limiting are abstracted by the gateway.
+Example: Netflix’s Zuul, Spring Cloud Gateway.
+What is the Circuit Breaker pattern in microservices?
+Circuit Breaker prevents cascading failures in microservices by failing fast:
+Monitors requests to a service.
+In case of repeated failures, it "opens" and stops forwarding requests temporarily.
+Tools: Netflix Hystrix, Resilience4j.
+What is distributed tracing, and how is it achieved in microservices?
+Distributed tracing tracks requests across multiple services for performance monitoring and debugging.
+Tools:
+Spring Cloud Sleuth: Adds trace IDs to logs.
+Zipkin or Jaeger: Aggregates and displays distributed traces.
+How is transaction management handled in microservices (SAGA pattern)?
+Microservices often use the SAGA pattern for distributed transaction management:
+Choreography: Services communicate via events without a central authority.
+Orchestration: A central coordinator manages the transaction steps.

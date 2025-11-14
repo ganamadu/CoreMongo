@@ -1,0 +1,71 @@
+Spring Framework Questions
+Core Spring
+What is the Spring Framework, and what are its key features?
+Spring is a Java framework for developing enterprise applications. Key features:
+Dependency Injection (DI) and IoC (Inversion of Control) container.
+Aspect-Oriented Programming (AOP).
+Modularization with components like Spring Core, Spring MVC, Spring Data, etc.
+What is Dependency Injection (DI) in Spring?
+DI is a design pattern used to implement IoC by injecting object dependencies at runtime instead of hardcoding them.
+Example: A bean's dependencies can be automatically resolved using the @Autowired annotation.
+What are the different scopes of Spring beans?
+Singleton (default): Single instance shared across the container.
+Prototype: A new instance is created every time the bean is requested.
+Request: HTTP request-scoped (web applications only).
+Session: HTTP session-scoped (web applications only).
+Application: Shared across the Servlet lifecycle.
+WebSocket: Scoped to a WebSocket lifecycle.
+What is the difference between @Component, @Service, @Repository, and @Controller in Spring?
+All of these annotations are stereotypes that indicate a class is a bean.
+@Component: Marks a generic Spring-managed component class.
+@Service: Marks a service layer class.
+@Repository: Specialization for DAO classes that also provide translation for persistence-related exceptions.
+@Controller: Marks a class as a Spring MVC controller.
+What is the purpose of @Primary and @Qualifier in Spring?
+@Primary: Specifies the default bean to use when multiple candidates for autowiring are available.
+@Qualifier: Used to specify which bean to wire when multiple beans of the same type exist.
+What is the difference between ApplicationContext and BeanFactory in Spring?
+BeanFactory: The basic IoC container for managing beans and their lifecycle.
+ApplicationContext: An enhanced container offering additional features like internationalization, event publishing, and integration with other services.
+Explain Spring AOP and its use cases.
+Aspect-Oriented Programming (AOP) allows you to inject cross-cutting concerns like logging, transactions, or security without modifying the core logic.
+Key components:
+Aspect: Modularized behavior (e.g., logging).
+JoinPoint: A point in the execution (e.g., method invocation).
+Advice: Action to take at a join point (e.g., @Before, @After).
+Pointcut: Expression that selects specific join points.
+Weaving: The process of applying aspects.
+________________________________________
+Spring Boot Questions
+What is Spring Boot, and how is it different from the Spring Framework?
+Spring Boot simplifies Spring development by:
+Providing auto-configuration to reduce boilerplate code.
+Embedding application servers like Tomcat, Jetty, or Undertow for easier deployment.
+Integrated dependency management with Starters.
+Unlike traditional Spring, it doesn’t require verbose XML or manual configurations.
+Explain the use of application.properties or application.yml in Spring Boot.
+These files are used for configuring application-level properties, such as:
+Server port: server.port=8081
+Database configuration: spring.datasource.url, spring.datasource.username, etc.
+Logging levels: logging.level.<logger-name>=DEBUG
+What are Spring Boot Auto Configuration and @EnableAutoConfiguration?
+Auto-Configuration: Automatically configures Spring beans based on classpath dependencies. For example:
+spring-boot-starter-data-jpa configures EntityManager and DataSource.
+@EnableAutoConfiguration: Enables auto-configuration. It is implicitly included with @SpringBootApplication.
+What is a Spring Boot Starter?
+Starters are pre-defined dependency descriptors that simplify including libraries. Examples:
+spring-boot-starter-web: For REST ful web services.
+spring-boot-starter-data-jpa: For JPA and Hibernate.
+How does Spring Boot integrate with external configuration sources?
+Spring Boot supports hierarchical configuration from multiple sources:
+Application properties/yaml files, command-line arguments, environment variables, etc.
+External configurations can be loaded from remote sources using tools like Spring Cloud Config or Consul.
+Explain Spring Boot Actuator and its role.
+Actuator is a tool to monitor and manage Spring Boot applications.
+Provides REST endpoints (e.g., /actuator/health, /actuator/metrics) for operational insights on performance, uptime, and resource usage.
+What is the difference between DevTools in Spring Boot and Actuator?
+DevTools: Facilitates hot-reloading of code in the development environment.
+Actuator: Exposes operational endpoints for production usage.
+Explain the SpringApplication.run() method in Spring Boot.
+It is the entry point of the Spring Boot application.
+It bootstraps the application context, starts the embedded web server (if any), and initializes all beans with dependency injection.

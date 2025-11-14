@@ -1,0 +1,28 @@
+The API Rate Limiting pattern is commonly used in microservices to control the number of requests a client or user can make within a certain time window. This design pattern helps to prevent abuse, ensure fair usage, and maintain system stability by avoiding resource exhaustion due to excessive traffic.
+Key approaches to implement the Rate Limiting pattern:
+Token Bucket Algorithm:
+Tokens are added to a "bucket" at fixed intervals (representing the capacity for requests).
+Each request consumes a token from the bucket.
+When the bucket is empty, requests are denied or delayed until tokens are replenished.
+Leaky Bucket Algorithm:
+Requests are queued internally, and they "leak" out at a fixed rate.
+If the queue is full, additional requests are rejected.
+Fixed Window and Sliding Window Counters:
+Fixed Window: The system keeps track of requests count within a fixed time window (e.g., 1 minute).
+Sliding Window: Monitors requests in a rolling time window to distribute limits more evenly.
+Concurrency Limiting:
+Limit the number of concurrent requests that can be processed by the system.
+Excessive concurrent requests are queued or delayed.
+Quota-Based Limiting:
+Each client or user has a quota (e.g., 1000 requests per hour), which resets after a specified interval.
+Common tools and techniques:
+API Gateway: Rate limiting is typically implemented at the API gateway (e.g., Kong, NGINX, AWS API Gateway, or Azure API Management).
+Distributed Rate Limiting: When microservices are deployed across multiple instances, distributed rate limiting tools like Redis, Memcached, or specialized libraries (such as Netflix's Zuul) can be used to store request counts and enforce limits across multiple nodes.
+Circuit Breaker Pattern: Sometimes used in conjunction with rate limiting to break requests when a service is overloaded.
+Benefits:
+Prevents Denial of Service (DoS) attacks.
+Protects downstream services from becoming overwhelmed.
+Ensures fair allocation of resources across users.
+Example:
+In a real-world implementation, a client consuming an API might be limited to 100 requests per minute. If the client exceeds this limit, subsequent requests might receive HTTP 429 (Too Many Requests) responses.
+This pattern is essential in microservices architecture, especially for public APIs or external-facing requests.

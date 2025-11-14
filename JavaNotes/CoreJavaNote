@@ -1,0 +1,163 @@
+Java Internal Evaluations Question:
+How to debug the Pod in Kubernetes? How check the logs?
+What are the name spaces available in Kubernetes?
+Internal implementation of ArrayList and Linked List, which one is better.
+If I delete one element in ArrayList, what is internal process.
+Which design patterns used in your Microservices?
+Where to configure the ArcoCD configuration in your project?
+What is Optional? difference between optional.of() and optional(). ofNullable()?
+What is internal implementation of TreeSet?
+Which design pattern in micro service for no of request limits?
+Which functional Interfaces used in your project?
+
+
+Sixtsense Client Interview Questions:
+How to get the Tables headers in MySql
+Query Param how to send multiple query parames in request and how to validate the maindatory query params?
+What is OAuth? How to implement OAuth.
+Which Paginigation you have worked in your project? What is the used of Paginiation and how to implement in JPA?
+How to consume the external services? How to consume external end points using plain Java?
+How to implement Junt tests?
+How to implement batch in spring?
+
+Skyhigh project Discussion Interveiw Questions:
+What is jsk-bom? What is uses of bom versions.
+What is the dependencyManagement tag in pom.xml file, what is main uses of dependencyManagement.
+How to create a bean, its not part of the Spring, it is external java class, how to create it.
+Can you explain bookmyshow project, how many Microservices are required to develop a bookmyshow project.
+How to test the Payment Gateway? Is there any way to test?
+What is the process of Migrate a Spring Boot version, how to do it.
+How to find out the Valinaribility issues in your project and how to handle it.
+What is the Slfj Valinaribility issue, why we need to migrate the Slf4j, which version we are facing the issue?
+
+
+
+Core Java Interview Question for Java Architect
+Preparing for a Java Architect position requires in-depth knowledge of core Java concepts, object-oriented programming (OOP), architectural principles, design patterns, system scalability, and enterprise-level concerns. Below are common topic areas and questions that you might encounter during an interview for a Java Architect role:
+________________________________________
+Core Java Concepts
+________________________________________
+Object-Oriented Programming (OOP)
+________________________________________
+Concurrency & Multithreading
+________________________________________
+Design Patterns
+________________________________________
+Java Memory Management
+________________________________________
+Database and ORM
+________________________________________
+Architectural Concepts
+________________________________________
+Best Practices Questions
+________________________________________
+These topics cover both Java fundamentals and more advanced technical concepts that align with the responsibilities of a Java Architect.
+What is the difference between final, finally, and finalize()in Java?
+final: Used to mark variables (constants), methods (non-overridable), and classes (non-inheritable).
+finally: A block in exception handling that is executed irrespective of whether an exception occurs or not.
+finalize(): A method that is called by the garbage collector on objects before removing them from memory. Deprecated in Java 9+.
+What are the key features of Java 8, Java 11, and Java 17?
+Java 8: Streams, Lambda expressions, Default methods in interfaces, Functional interfaces, Optional.
+Java 11: String API enhancements, varin lambda parameters, HTTP Client, JEP 181 (Nest-Based Access Control).
+Java 17: Sealed classes, Pattern matching for switch, JEP 356 (Application Class Data Sharing), JEP 409 (Foreign Function API - preview).
+Explain how HashMapworks internally in Java.
+HashMap uses a hash table to store key-value pairs. It computes the hashCode()of the key, maps it to a bucket index, and uses chaining (via linked lists or trees) to handle collisions. Since Java 8, it uses balanced trees (TreeNodes) instead of linked lists for better performance on hash collisions.
+What is the difference between checked and unchecked exceptions?
+Checked exceptions are handled at compile time (IOException, SQLException).
+Unchecked exceptions occur at runtime (NullPointerException, ArrayIndexOutOfBoundsException).
+How does the String class achieve immutability?
+The String class maintains immutability by declaring itself as final and using a private final char[] array for storing character data. Any modification creates a new String object.
+Explain SOLID principles and their importance in design.
+Single Responsibility Principle
+Open/Closed Principle
+Liskov Substitution Principle
+Interface Segregation Principle
+Dependency Inversion Principle
+These principles help create robust, maintainable, and scalable systems.
+What are the differences between composition and inheritance?
+Composition: "Has-A" relationship - objects are used as fields within other classes; preferred for flexibility.
+Inheritance: "Is-A" relationship - classes share behavior via a parent; can result in tight coupling and fragile designs.
+How would you handle circular dependencies in a complex system?
+Using dependency inversion (via interfaces), breaking dependencies with events or callbacks, or applying architectural patterns (e.g., mediator or observer).
+What are the key differences between synchronized and Lock in Java?
+synchronized: A keyword for intrinsic locks; lacks flexibility and must be tied to a block or method.
+Lock (from java.util.concurrent): More flexible; lock can be acquired, released, or tried based on fine-grained control (e.g., ReentrantLock).
+Explain the Fork/Join Framework introduced in Java 7.
+A framework for parallel execution of tasks by recursively splitting them into smaller subtasks (fork) and combining (join) their results. Utilizes a work-stealing algorithm for load balancing.
+What is the difference between Future and CompletableFuture?
+Future: A blocking abstraction introduced in Java 5 for asynchronous computation.
+CompletableFuture: Extended in Java 8 for non-blocking asynchronous computation with chaining, functional methods, and exception handling.
+Explain the Singleton Design Pattern and different ways to implement it.
+Singleton ensures only one instance of a class exists. Ways to implement:
+Eager Initialization
+Lazy Initialization (Thread-safe using synchronized)
+Bill Pugh Singleton (Static Inner Class)
+Enum Singleton
+What is the difference between Factory and Abstract Factory patterns?
+Factory: Creates objects based on a single criterion or interface.
+Abstract Factory: Creates families of related objects without specifying concrete classes.
+Explain the Microservices architectural pattern.
+Microservices encapsulate business capabilities into loosely coupled, independently deployable services. They interact using lightweight protocols (like REST or messaging).
+Pros: Scalability, fault isolation.
+Cons: Increased complexity, network latency.
+What is the difference between stack and heap memory?
+Stack: Stores method calls and local variables; faster and automatically managed.
+Heap: Stores objects and instance variables; managed by the JVM garbage collector.
+Explain JVM garbage collection (GC) and its phases.
+GC phases: Mark, Sweep, Compact. Algorithms include:
+Serial GC (single-threaded),
+Parallel GC,
+G1 GC (Java 9+ for low latency).
+What are JVM memory regions?
+Heap, Stack, Method Area (for bytecode, static variables), Native Memory.
+How does Hibernate manage lazy and eager fetching?
+Lazy Fetching: Data is loaded only when accessed (FetchType.LAZY).
+Eager Fetching: Data is preloaded (FetchType.EAGER).
+Explain ACID properties in the context of a database.
+Atomicity: Transactions are entirely executed or rolled back.
+Consistency: Database remains in a valid state.
+Isolation: Transactions don't affect each other.
+Durability: Data is permanently stored after transaction commits.
+How would you design a highly scalable system in Java?
+Strategies to enhance scalability:
+Use stateless architecture.
+Caching (e.g., Redis, Ehcache).
+Asynchronous processing and event-driven architecture (e.g., Kafka).
+Database partitioning (sharding, replication).
+Containerization (using Docker, Kubernetes).
+What is the CAP theorem for distributed systems?
+CAP theorem states that distributed systems can only achieve any two of the following at once:
+Consistency
+Availability
+Partition Tolerance
+Explain advantages and challenges of Monolithic vs Microservices architectures.
+Monolithic: Easier to debug, lower deployment complexity; can be hard to scale and maintain.
+Microservices: Independent scalability, technology diversity; increased network latency and monitoring challenges.
+How do you ensure code quality in large-scale Java applications?
+Use coding standards (e.g., CheckStyle), automatic build tools (Maven/Gradle), testing frameworks (JUnit/TestNG), code reviews, CI/CD pipelines, and profiling tools.
+How would you implement security in a Java-based web application?
+Secure endpoints (HTTPS), validate inputs (prevent SQL injection/XSS), use authentication and authorization frameworks (e.g., Spring Security, OAuth), and encrypt sensitive data.
+How do you handle caching in a distributed environment?
+Use external tools like Redis or Memcached, ensure cache consistency (e.g., using invalidation strategies), and prevent stale data via TTL (Time-to-Live).
+
+
+
+________________________________________
+General Patterns and Tools
+How do you handle inter-service communication?
+Synchronous: REST or gRPC.
+Asynchronous: Message brokers (e.g., RabbitMQ, Kafka).
+What is the difference between Monolithic and Microservices architecture?
+Monolithic: Single codebase, tightly coupled. Easier to develop but harder to scale.
+Microservices: Decoupled components. Complex to develop but scalable.
+How do you implement security in Spring Boot microservices?
+Use Spring Security with OAUTH2 and JWT for authentication/authorization.
+Leverage API Gateway for centralized security policies.
+
+Check below new implementation in Java.
+New Implementations:
+ChronoUnit(A standard set of date periods units.)
+long monthsBetween = ChronoUnit.MONTHS.between(startDate, endDate);
+ChronoUnit.DAYS.between(startDate, endDate) <= 35)
+
+
