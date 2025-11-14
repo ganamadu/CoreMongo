@@ -1,6 +1,7 @@
-package com.core.mongo.service;
+package com.core.mongo.controller;
 
 import com.core.mongo.entity.Emp;
+import com.core.mongo.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
