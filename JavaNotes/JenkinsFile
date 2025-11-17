@@ -1,0 +1,816 @@
+//The library version is controlled from the Jenkins
+
+ configuration
+// To force a version add after lib '@' followed by the version.
+@Library(value = ' mass-shared-lib', changelog = false) _
+def deploymentConfig
+def exclusions = "**/Dependencies.class, **/Versions.class, **/*Config*.class, **/config/**,"+
+"**/model/**, **/types/**, **/redis/**, **/*Constant*.class, **/*Entity*.class, **/*Test*.class, **/testutil/**," +
+"**/*Application*.class, **/test/**, **/FilePersistenceStrategy.class, **/*Channel*.class"
+def prdEastPipelineInputTimeout = false
+def prdWestPipelineInputTimeout = false
+node {
+apiConfig = loadGqlApiDefaults(configFile: 'buildConfig.yaml')
+podSpec = apiConfig.podSpec
+// setup the global static configuration
+config = setup massPipeline(' mass-config.yaml')
+configFileProvider([configFile(fileId: " StdEmp-deployment-config", variable: "deploymentConfigFile")]) {
+deploymentConfig = readProperties file: deploymentConfigFile
+println("Current branch: ${env.BRANCH_NAME}")
+println("Deployment config: ${deploymentConfig}")
+}
+}
+@Library('api-shared-libraries') apiSharedLib
+void runComponentTest() {
+echo "Component Test Execution started"
+try {
+sh "SPRING_PROFILES_ACTIVE=component-test ./gradlew :ComponentTest:test"
+echo "Component Test Execution successful"
+} catch (err)
+{
+echo "Component Test Execution Failed: ${err}"
+throw err;
+}
+}
+slackNotificationChannelName = "# StdEmp-engine-notify"
+slackNotificationURL = "https:// Msit-teams.slack.com/services/hooks/jenkins-ci/"
+slackCredentialID = "slack-token"
+pipeline {
+options {
+preserveStashes(buildCount: 5)
+}
+agent {
+kubernetes {
+label "${config.pod_label}"
+yaml "${podSpec}"
+}
+}
+post {
+always {
+sendSlackMessage()
+sendMetrics(config)
+}
+fixed {
+emailext(
+subject: "Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' ${currentBuild.result}",
+body: """
+Job Status for '${env.JOB_NAME} [${env.BUILD_NUMBER}]': ${currentBuild.result}\n\nCheck console output at ${env.BUILD_URL}
+""",
+to: 'some_email@ Msit.com'
+)
+}
+unsuccessful {
+script {
+echo "Pipeline Failure!"
+if (env.BRANCH_NAME == 'master' && currentBuild.result != 'ABORTED') {
+emailext(
+to: "coreapp-dev@ Msit.com",
+subject: "[${currentBuild.result}] Pipeline : ${currentBuild.fullDisplayName}",
+body: "Something is wrong in ${env.BUILD_URL}"
+)
+emailext(
+to: " StdEmp-engine-no-aaaaky3l5jyedhd3h4eza5nthq@ Msit.org.slack.com",
+subject: "[${currentBuild.result}] Pipeline : ${currentBuild.fullDisplayName}",
+body: "Something is wrong in ${env.BUILD_URL}"
+)
+}
+}
+}
+}
+stages {
+stage('PRE-BUILD:') {
+when {
+anyOf {
+branch 'master'
+changeRequest()
+}
+}
+post {
+always {
+sendDeployMetrics(config, [boxsetVersion: "${config.image_full_name}", envName: 'pre-build:'])
+}
+}
+steps {
+setupCapabilities(config, [filepathExclusionRegexes: []])
+}
+}
+stage('VALIDATE:') {
+steps {
+container('test') {
+sh label: 'Unit Test and Detekt', script:'./gradlew clean check --exclude-task :integration-tests:generateJava --exclude-task :ComponentTest:test --scan --info'
+archiveArtifacts artifacts: 'app/build/reports/detekt/detekt.html', fingerprint: true
+sh label: 'Jacoco Report', script: './gradlew : StdEmp-engine:koverXmlReport --scan --info'
+sh label: 'Copy to Workspace', script: "cp -R app/build ${env.WORKSPACE}"
+}
+jacoco(exclusionPattern: exclusions, sourcePattern: 'src', sourceInclusionPattern: '**/*.kt')
+codeCov(config)
+}
+}
+stage('BUILD:') {
+when {
+anyOf {
+branch 'master'
+changeRequest()
+}
+}
+stages {
+stage('Schema Linting') {
+steps {
+container('api-tools-container') {
+gqlLinter(apiConfig)
+}
+}
+}
+stage('Docker Build and Mock Server') {
+parallel {
+stage('Docker Multi Stage Build') {
+steps {
+container('podman') {
+podmanBuild("--rm=false --build-arg=\"build=${env.BUILD_URL}\" --build-arg=\"CI=${env.CI}\" --build-arg=\"CHANGE_BRANCH=${env.CHANGE_BRANCH}\" --build-arg appVersion=${config.version} .")
+sh label: 'podman image debug', script: 'podman images --format json'
+podmanMount(podmanFindImage([image: 'build', build: env.BUILD_URL]), {steps,mount ->
+sh(label: 'copy outputs to workspace', script: "cp -r ${mount}/usr/src/ StdEmp-engine ${env.WORKSPACE}")
+})
+podmanTag(podmanFindImage([image: 'application', build: env.BUILD_URL]), config.image_full_name)
+podmanPush(config)
+podmanTag(podmanFindImage([image: 'build', build: env.BUILD_URL]), config.test_image_full_name)
+podmanPush([image_full_name: config.test_image_full_name,
+service_name: config.service_name,
+registry: config.registry])
+podmanTag(podmanFindImage([image: 'integration-test', build: env.BUILD_URL]), config.int_test_image_full_name)
+podmanPush([
+image_full_name: config.int_test_image_full_name,
+service_name: config.service_name,
+registry: config.registry
+])
+}
+}
+}
+stage('AMP:') {
+when {expression {return config.enableGraphQLMockServer}}
+stages {
+stage('Mock Server Build') {
+steps {
+container('podman') {
+gqlMockBuild(apiConfig, 'prd')
+}
+container('cpd2') {
+amp MsitCpd2(apiConfig, 'prd')
+}
+}
+}
+stage('Publish API Metadata and Mock Deploy') {
+steps {
+container('api-tools-container') {
+gqlMetadataPublish(apiConfig, 'prd')
+}
+}
+}
+stage('Mock Server Check') {
+steps {
+container('api-tools-container') {
+gqlMockServerCheck(apiConfig, 'prd')
+}
+}
+}
+}
+}
+}
+}
+stage('Publish') {
+post {
+always {
+sendBuildMetrics(config)
+}
+}
+parallel {
+stage('CPD Certification & Publish') {
+steps {
+container('cpd2') {
+ MsitCPD2Podman(config, "-i ${config.image_full_name} --buildfile Dockerfile")
+}
+container('podman') {
+podmanPull(config, config.image_full_name)
+podmanInspect(config, '-s', 'image-metadata.json')
+archiveArtifacts(artifacts: 'image-metadata.json', allowEmptyArchive: true)
+}
+}
+}
+stage('Code Analysis') {
+when {expression {return config.SonarQubeAnalysis}}
+steps {
+container('test') {
+echo 'Running SonarQube code analysis'
+reportSonarQube(config)
+}
+}
+}
+stage('Checkmarx') {
+steps {
+checkmarx(config)
+}
+}
+}
+}
+// jira transitioning
+stage('Transition Jira Tickets') {
+steps {
+script {
+if (env.BRANCH_NAME != 'master' && changeRequest()) {
+transitionJiraTickets(config, 'Ready for Review')
+} else if (env.BRANCH_NAME == 'master') {
+transitionJiraTickets(config, 'Closed')
+}
+}
+}
+}
+}
+}
+stage('PR:') {
+when {changeRequest()}
+post {
+success {
+transitionJiraTickets(config, 'Ready for Review')
+}
+}
+stages {
+stage('Component Test') {
+when {
+beforeAgent true
+allOf {
+expression { return config.enableComponentTesting }
+}
+not {
+anyOf {
+branch deploymentConfig['qal.branch']
+branch deploymentConfig['e2e.branch']
+branch deploymentConfig['prf.branch']
+}
+}
+}
+options {
+timeout(time: 20, unit: 'MINUTES')
+}
+stages {
+stage('Build Template 🧱 ') {
+steps {
+container('cdtools') {
+echo "Creating CI YAML for kustomize pod deployment"
+script { CI_YAML = sh(label: "kustomize pod", script: "kustomize build infra/dependencies/ci", returnStdout: true) }
+echo(CI_YAML)
+}
+}
+}
+stage('Setup Infra and Test 🧪') {
+agent {
+kubernetes {
+yaml CI_YAML
+}
+}
+steps {
+container('test') {
+runComponentTest()
+}
+}
+}
+stage('Component Functional/Perf Tests') {
+when {
+beforeAgent true
+allOf {
+expression {return config.enableFunctionalOrPerf}
+}
+}
+parallel {
+stage('Functional Tests') {
+post {
+success {
+githubNotify context: 'Component Functional Tests', credentialsId: 'github-svc-sbseg-ci', gitApiUrl: config['github_api_endpoint'], description: 'Tests Passed', status: 'SUCCESS', targetUrl: env.JOB_URL + '/' + env.BUILDNUMBER + '/Component_20Functional_20Test_20Results'
+}
+failure {
+githubNotify context: 'Component Functional Tests', credentialsId: 'github-svc-sbseg-ci', gitApiUrl: config['github_api_endpoint'], description: 'Tests are failing', status: 'FAILURE', targetUrl: env.RUN_DISPLAY_URL
+}
+}
+steps {
+script {
+try {
+container('test') {
+sh label: 'Run Component Tests', script: 'mvn -s settings.xml -f app/pom.xml test -Pkarate -Dkarate.env=mock -Dkarate.server.port=8443'
+}
+}finally {
+publishHTML target: [
+allowMissing: false,
+alwaysLinkToLastBuild: false,
+keepAll: true,
+reportDir: 'app/target/cucumber-html-reports',
+reportFiles: 'overview-features.html',
+reportName: 'Component Functional Test Results'
+]
+}
+}
+}
+}
+stage('Perf Tests') {
+post {
+success {
+githubNotify context: 'Component Perf Tests', credentialsId: 'github-svc-sbseg-ci', gitApiUrl: config['github_api_endpoint'], description: 'Tests Passed', status: 'SUCCESS', targetUrl: env.JOB_URL + '/' + env.BUILDNUMBER + '/Component_20Perf_20Test_20Results'
+}
+failure {
+githubNotify context: 'Component Perf Tests', credentialsId: 'github-svc-sbseg-ci', gitApiUrl: config['github_api_endpoint'], description: 'Tests are failing', status: 'FAILURE', targetUrl: env.RUN_DISPLAY_URL
+}
+}
+steps {
+script {
+try {
+container('test') {
+sh label: 'Run Perf Tests', script: 'mvn -s settings.xml -f app/pom.xml gatling:test -Pperf -Dkarate.env=mock -Dkarate.server.port=8443'
+}
+}finally {
+publishHTML target: [
+allowMissing: false,
+alwaysLinkToLastBuild: false,
+keepAll: true,
+reportDir: 'app/target/gatling',
+reportFiles: '**/index.html',
+reportName: 'Component Perf Test Results'
+]
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+stage('Prepare Parallel Deploy QAL') {
+when {
+beforeOptions true
+anyOf {
+branch 'master'
+branch deploymentConfig['qal.branch']
+}
+}
+steps {
+// Milestones can't be done in parallel steps
+milestone(ordinal: 10, label: 'Deploy: qal-usw2, qal-use2')
+}
+}
+stage('Parallel Deploy QAL') {
+parallel {
+stage('qal-use2-eks') {
+when {
+beforeOptions true
+anyOf {
+branch 'master'
+branch deploymentConfig['qal.branch']
+}
+}
+post {
+always {
+sendDeployMetrics(config, [boxsetVersion: "${config.image_full_name}", envName: 'qal-use2-eks'])
+}
+}
+options {
+lock(resource: getEnv(config, 'qal-use2-eks').namespace, inversePrecedence: true)
+timeout(time: 45, unit: 'MINUTES')
+}
+stages {
+stage('Scorecard Check') {
+when {expression {return config.enableScorecardReadinessCheck}}
+steps {
+scorecardPreprodReadiness(config, 'qal-use2-eks')
+}
+}
+stage('Deploy') {
+steps {
+container('cdtools') {
+// For Reference: https://github. Msit.com/dev-patterns/ mass-jenkins-shared-library/blob/master/vars/gitOpsDeploy.groovy
+gitOpsDeploy(config, 'qal-use2-eks', config.image_full_name, 4, 2700)
+}
+}
+}
+stage('Transition Jira Tickets') {
+when {expression {return config.enableJiraTransition}}
+steps {
+transitionJiraTickets(config, 'Deployed to PreProd')
+}
+}
+}
+}
+stage('qal-usw2-eks') {
+when {
+beforeOptions true
+anyOf {
+branch 'master'
+branch deploymentConfig['qal.branch']
+}
+}
+post {
+always {
+sendDeployMetrics(config, [boxsetVersion: "${config.image_full_name}", envName: 'qal-usw2-eks'])
+}
+}
+options {
+lock(resource: getEnv(config, 'qal-usw2-eks').namespace, inversePrecedence: true)
+timeout(time: 45, unit: 'MINUTES')
+}
+stages {
+stage('Scorecard Check') {
+when {expression {return config.enableScorecardReadinessCheck}}
+steps {
+scorecardPreprodReadiness(config, 'qal-usw2-eks')
+}
+}
+stage('Deploy') {
+steps {
+container('cdtools') {
+// For Reference: https://github. Msit.com/dev-patterns/ mass-jenkins-shared-library/blob/master/vars/gitOpsDeploy.groovy
+gitOpsDeploy(config, 'qal-usw2-eks', config.image_full_name, 4, 2700)
+}
+}
+}
+stage('Transition Jira Tickets') {
+when {expression {return config.enableJiraTransition}}
+steps {
+transitionJiraTickets(config, 'Deployed to PreProd')
+}
+}
+}
+}
+}
+}
+stage("QAL Integration Test") {
+when {
+beforeOptions true
+anyOf {
+branch 'master'
+}
+}
+steps {
+milestone(ordinal: 15, label: 'qal integration test')
+container('test') {
+script {
+sh label: 'Integration Test', script: 'SPRING_PROFILES_ACTIVE=e2e ./gradlew :integration-tests:integrationTest --scan'
+withChecks('Integration Test') {
+junit testResults: '**/test-results/integrationTest/*.xml'
+}
+}
+}
+}
+}
+stage('Prepare Parallel Deploy') {
+when {
+beforeOptions true
+anyOf {
+branch 'master'
+branch deploymentConfig['e2e.branch']
+branch deploymentConfig['prf.branch']
+}
+}
+steps {
+// Milestones can't be done in parallel steps
+milestone(ordinal: 20, label: 'Deploy: e2e-usw2, e2e-use2, prf-usw2, prf-use2')
+}
+}
+stage('Parallel Deploy Rest of Pre-Prod') {
+parallel {
+stage('e2e-use2-eks') {
+when {
+beforeOptions true
+anyOf {
+branch 'master'
+branch deploymentConfig['e2e.branch']
+}
+}
+post {
+always {
+sendDeployMetrics(config, [boxsetVersion: "${config.image_full_name}", envName: 'e2e-use2-eks'])
+}
+}
+options {
+lock(resource: getEnv(config, 'e2e-use2-eks').namespace, inversePrecedence: true)
+timeout(time: 45, unit: 'MINUTES')
+}
+stages {
+stage('Scorecard Check') {
+when {expression {return config.enableScorecardReadinessCheck}}
+steps {
+scorecardPreprodReadiness(config, 'e2e-use2-eks')
+}
+}
+stage('Deploy') {
+steps {
+container('cdtools') {
+// For Reference: https://github. Msit.com/dev-patterns/ mass-jenkins-shared-library/blob/master/vars/gitOpsDeploy.groovy
+gitOpsDeploy(config, 'e2e-use2-eks', [config.image_full_name, config.int_test_image_full_name], 4, 2700)
+}
+}
+}
+stage('Transition Jira Tickets') {
+when {expression {return config.enableJiraTransition}}
+steps {
+transitionJiraTickets(config, 'Deployed to e2e')
+}
+}
+}
+}
+stage('e2e-usw2-eks') {
+when {
+beforeOptions true
+anyOf {
+branch 'master'
+branch deploymentConfig['e2e.branch']
+}
+}
+post {
+always {
+sendDeployMetrics(config, [boxsetVersion: "${config.image_full_name}", envName: 'e2e-usw2-eks'])
+}
+}
+options {
+lock(resource: getEnv(config, 'e2e-usw2-eks').namespace, inversePrecedence: true)
+timeout(time: 45, unit: 'MINUTES')
+}
+stages {
+stage('Scorecard Check') {
+when {expression {return config.enableScorecardReadinessCheck}}
+steps {
+scorecardPreprodReadiness(config, 'e2e-usw2-eks')
+}
+}
+stage('Deploy') {
+steps {
+container('cdtools') {
+// For Reference: https://github. Msit.com/dev-patterns/ mass-jenkins-shared-library/blob/master/vars/gitOpsDeploy.groovy
+gitOpsDeploy(config, 'e2e-usw2-eks', [config.image_full_name, config.int_test_image_full_name] , 4, 2700)
+}
+}
+}
+stage('Transition Jira Tickets') {
+when {expression {return config.enableJiraTransition}}
+steps {
+transitionJiraTickets(config, 'Deployed to e2e')
+}
+}
+}
+}
+stage('prf-use2-eks') {
+when {
+beforeOptions true
+anyOf {
+branch 'master'
+branch deploymentConfig['prf.branch']
+}
+}
+post {
+always {
+sendDeployMetrics(config, [boxsetVersion: "${config.image_full_name}", envName: 'prf-use2-eks'])
+}
+}
+options {
+lock(resource: getEnv(config, 'prf-use2-eks').namespace, inversePrecedence: true)
+timeout(time: 45, unit: 'MINUTES')
+}
+stages {
+stage('Scorecard Check') {
+when {expression {return config.enableScorecardReadinessCheck}}
+steps {
+scorecardPreprodReadiness(config, 'prf-use2-eks')
+}
+}
+stage('Deploy') {
+steps {
+container('cdtools') {
+// For Reference: https://github. Msit.com/dev-patterns/ mass-jenkins-shared-library/blob/master/vars/gitOpsDeploy.groovy
+gitOpsDeploy(config, 'prf-use2-eks', config.image_full_name, 4, 2700)
+}
+}
+}
+stage('Transition Jira Tickets') {
+when {expression {return config.enableJiraTransition}}
+steps {
+transitionJiraTickets(config, 'Deployed to prf')
+}
+}
+}
+}
+stage('prf-usw2-eks') {
+when {
+beforeOptions true
+anyOf {
+branch 'master'
+branch deploymentConfig['prf.branch']
+}
+}
+post {
+always {
+sendDeployMetrics(config, [boxsetVersion: "${config.image_full_name}", envName: 'prf-usw2-eks'])
+}
+}
+options {
+lock(resource: getEnv(config, 'prf-usw2-eks').namespace, inversePrecedence: true)
+timeout(time: 45, unit: 'MINUTES')
+}
+stages {
+stage('Scorecard Check') {
+when {expression {return config.enableScorecardReadinessCheck}}
+steps {
+scorecardPreprodReadiness(config, 'prf-usw2-eks')
+}
+}
+stage('Deploy') {
+steps {
+container('cdtools') {
+// For Reference: https://github. Msit.com/dev-patterns/ mass-jenkins-shared-library/blob/master/vars/gitOpsDeploy.groovy
+gitOpsDeploy(config, 'prf-usw2-eks', config.image_full_name, 4, 2700)
+}
+}
+}
+stage('Transition Jira Tickets') {
+when {expression {return config.enableJiraTransition}}
+steps {
+transitionJiraTickets(config, 'Deployed to prf')
+}
+}
+}
+}
+}
+}
+stage('prd-use2-eks Approval') {
+when {
+beforeOptions true
+allOf { branch 'master'; not { changeRequest() }; not { expression { return config.preprodOnly } } }
+}
+agent none
+options {
+timeout(time: 1, unit: 'DAYS')
+}
+steps {
+script {
+try {
+gitOpsApproval(config, "prd-use2-eks")
+} catch (err) {
+def msg = err.getMessage()
+echo msg
+if (msg == null) {
+echo "Pipeline timedout"
+prdEastPipelineInputTimeout = true
+} else {
+echo "Pipeline err"
+throw err
+}
+}
+}
+}
+}
+stage('prd-use2-eks') {
+when {
+beforeOptions true
+allOf { branch 'master'; not { changeRequest() }; not { expression { return config.preprodOnly } }; not { expression { prdEastPipelineInputTimeout } } }
+}
+post {
+always {
+sendDeployMetrics(config, [boxsetVersion: "${config.image_full_name}", envName: 'prd-use2-eks'])
+}
+}
+options {
+lock(resource: getEnv(config, 'prd-use2-eks').namespace, inversePrecedence: true)
+timeout(time: 45, unit: 'MINUTES')
+}
+stages {
+stage('Scorecard Check') {
+when {expression {return config.enableScorecardReadinessCheck}}
+steps {
+scorecardPreprodReadiness(config, 'prd-use2-eks')
+}
+}
+stage('Deploy') {
+steps {
+container('cdtools') {
+// This has to be the first action in the first sub-stage
+milestone(ordinal: 30, label: 'Deploy-prd-use2-eks-milestone')
+// The signature for this function is:
+// gitOpsDeploy(config: map, env: string, image: string,
+// git_timeout: int, appWaitTimeout: int, prune: boolean, isSwimlane: boolean)
+// For Reference: https://github. Msit.com/dev-patterns/ mass-jenkins-shared-library/blob/master/vars/gitOpsDeploy.groovy
+gitOpsDeploy(config, 'prd-use2-eks', config.image_full_name, 4, 2700)
+}
+}
+}
+stage('Transition Jira Tickets') {
+when {expression {return config.enableJiraTransition}}
+steps {
+transitionJiraTickets(config, 'Deployed to Prod East')
+}
+}
+}
+}
+stage('prd-usw2-eks Approval') {
+when {
+beforeOptions true
+allOf { branch 'master'; not { changeRequest() }; not { expression { return config.preprodOnly } }; not { expression { prdEastPipelineInputTimeout } } }
+}
+agent none
+options {
+timeout(time: 1, unit: 'DAYS')
+}
+steps {
+script {
+try {
+gitOpsApproval(config, "prd-usw2-eks")
+} catch (err) {
+def msg = err.getMessage()
+echo msg
+if (msg == null) {
+echo "Pipeline timedout"
+prdWestPipelineInputTimeout = true
+} else {
+echo "Pipeline err"
+throw err
+}
+}
+}
+}
+}
+stage('prd-usw2-eks') {
+when {
+beforeOptions true
+allOf { branch 'master'; not { changeRequest() }; not { expression { return config.preprodOnly } }; not { expression { prdWestPipelineInputTimeout } }; not { expression { prdEastPipelineInputTimeout } } }
+}
+post {
+always {
+sendDeployMetrics(config, [boxsetVersion: "${config.image_full_name}", envName: 'prd-usw2-eks'])
+}
+}
+options {
+lock(resource: getEnv(config, 'prd-usw2-eks').namespace, inversePrecedence: true)
+timeout(time: 45, unit: 'MINUTES')
+}
+stages {
+stage('Scorecard Check') {
+when {expression {return config.enableScorecardReadinessCheck}}
+steps {
+scorecardPreprodReadiness(config, 'prd-usw2-eks')
+}
+}
+stage('Deploy') {
+steps {
+container('cdtools') {
+// This has to be the first action in the first sub-stage
+milestone(ordinal: 40, label: 'Deploy-prd-usw2-eks-milestone')
+// The signature for this function is:
+// gitOpsDeploy(config: map, env: string, image: string,
+// git_timeout: int, appWaitTimeout: int, prune: boolean, isSwimlane: boolean)
+// For Reference: https://github. Msit.com/dev-patterns/ mass-jenkins-shared-library/blob/master/vars/gitOpsDeploy.groovy
+gitOpsDeploy(config, 'prd-usw2-eks', config.image_full_name, 4, 2700)
+}
+}
+}
+stage('Transition Jira Tickets') {
+when {expression {return config.enableJiraTransition}}
+steps {
+transitionJiraTickets(config, 'Deployed to Prod West')
+}
+}
+}
+}
+stage('noop') {
+when {
+beforeOptions true
+allOf { branch 'master' }
+}
+steps {
+container('test') {
+sh label: 'No Op', script:'echo "Pipeline is done"'
+}
+}
+}
+}
+}
+void sendSlackMessage() {
+if ("${env.BRANCH_NAME}" == "master") {
+if ("${currentBuild.result}" == "SUCCESS") {
+slackSend(
+channel: slackNotificationChannelName,
+color: '#00800D',
+message: " StdEmp Engine Build Succeeded for build=${env.BUILD_NUMBER} branch=${env.BRANCH_NAME}\n Find more info <${env.BUILD_URL}|here>",
+baseUrl: slackNotificationURL,
+tokenCredentialId: slackCredentialID)
+} else if ("${currentBuild.result}" == "FAILURE") {
+slackSend(
+channel: slackNotificationChannelName,
+color: '#D10000',
+message: "@ StdEmp_support  StdEmp Engine Build FAILED for build=${env.BUILD_NUMBER} branch=${env.BRANCH_NAME}\n Find more info <${env.BUILD_URL}|here>",
+baseUrl: slackNotificationURL,
+tokenCredentialId: slackCredentialID)
+} else if ("${currentBuild.result}" == "ABORTED") {
+slackSend(
+channel: slackNotificationChannelName,
+color: '#777777',
+message: " StdEmp Engine Build ABORTED for build=${env.BUILD_NUMBER} branch=${env.BRANCH_NAME}\n Find more info <${env.BUILD_URL}|here>",
+baseUrl: slackNotificationURL,
+tokenCredentialId: slackCredentialID)
+}
+}
+}
