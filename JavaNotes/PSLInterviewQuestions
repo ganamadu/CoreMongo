@@ -1,0 +1,188 @@
+S No	Questions
+1	what is polymorphism?
+2	what is method overloading and overriding?
+3	how do you write overloading and overriding?
+4	4) Below program outputs?
+
+	public class Test1 {
+
+	public void print() {
+	System.out.println("test1");
+	}
+
+	}
+	public class Test2  extends Test1{
+
+	public void print() {
+	System.out.println("test2");
+	}
+	public void print(String abc) {
+	System.out.println("argument");
+	}
+
+	public static void main(String[] args) {
+	// TODO Auto-generated method stub
+
+	Test1 t1=new Test1();
+	            t1.print();
+	            Test1 t2=new Test2();
+	t2.print();
+	Test2 t3=new Test2();
+	t3.print();
+	Test1 t4=new Test2();
+	t4.print("ramana");
+
+
+	}
+
+	}
+5	Internal Working mechanism of HashMap?
+6	why we need to override HashMap? What happens if we are not overriding of HashMap?
+7	How to sort Employee class based on Employee name?
+8	what is the difference between comparable and comparator?
+9	Java 8 features?
+10	what is lambda expression?
+11	what is functional interface?
+12	1what is the difference between wait and sleep method?
+13	13how to create Threads and which one is better to create thread using Runnable or Thread Class?
+14	14what is Stream? What are the benefit using streams?
+15	15how to create singleton class?
+16	what are the scopes of spring bean?
+17	what are stereotype annotations?
+18	how to inject beans in spring?
+19	what is early loading and lazyloading? How to configure in hibernate?
+20	How does hashmap work internally
+21	java program to print number 0 1 1 2 3 5 8
+22	Suppose there is a list which contains employees objects , we need to find the average salary and get employees in a separate list
+	whose salary is greater than the average salary.
+23	Suppose there is a list which contains integer objects, we need to find and print the pair whose sum is equal to target number.
+24	difference between load and get?
+25	how do we can retrieve  data from database using hibernate in technical way?
+26	hibernate caching
+27	what are the assert methods in juint?
+28	how do you mock the database calls and how do you can provide input for db objects?
+29	write code for find the duplicate elements count of given arraylist?
+30	do you want retrieve some 1,00,000 records using threads, how will you go for that?
+31	private contructor uses?
+32	if  we want to sort objects based on differnt feilds what way you can choose?
+33	how can we define singleton class and what are the rules?
+34	springboot auto configuration
+35	springboot accutator
+36	how do you communicate between services?
+37	how do you set response type of service method? i.e like json or xml
+38	How to handle 1 million record in DB? (For featching) Hint-DB indexing
+39	How to handle 1 million request per second? Hint-Using load balancer
+40	If machine having capacity of 32GB for Java Heap memory and it is full then how to handle that? Hint-JVM tools
+41	Code - fibonacci series in java - Explain program with complexity.Hint-done using recursion
+42	If you hit www.walmart.com in your browser then behind the scene what happens? Hint -Client-Server - web architecture
+43	Difference between http & https restful services
+44	How to make calls internally within different microservices.
+45	Synchronous & Asynchronous communication
+46	Explain various different components of spring boot in detail.
+47	Java Immutable/deep/shallow copies
+48	Thread Join, Semaphores, Fork Join/Executor Service
+49	Dependency Injection, Circuit Breaker Pattern
+50	Hashmap Sort by Value
+51	API gateway
+52	Kafka
+53	Balanced tree code
+54	Distributed Database Eventual Consistency
+55	Spring bean loading / lifecycle/profile/property files questions.
+56	Junits
+57	Java 8 - Stream based questions
+58	Sorting the list of employees on the basis of their salary which is dynamic i.e. changes frequently
+59	Implementing comparator using Java 8 for sorting
+60	Finding the frequency of each element in a list and arrange it on the basis of highest frequecy order
+61	Internal implementation of Hashmap and need of overriding hashcode and equals method
+62	Which collection is suitable for a given scenario of problem statement
+62	Largest Sum Contiguous Subarray ex: {-2, -3, 4, -1, -2, 1, 5, -3}
+63	is circular dependencies possible n spring boot
+64	what is the difference between POST and PUT and  PATCH methods in spring boot
+65	when we get stackover flow error
+66	hashmap internal implementation in java 8
+67	java 8 features?
+68	how do we handle excepetion in spring boot
+69	spring boot annotations
+70	explain java 8  streams like filter, map, reduce....
+71	how to set up connection time out in restTemplate
+72	how to read props in spring boot
+73	difference between component and service  annotations
+74	when do we write retry mechanism in restTemplate
+75	why do we need spring boot
+76	write lamda implementation for consumer and predicate functional interface
+77	what is predicate interface
+78	why functional annotation is required
+79	how to validate json body in spring boot
+80	expain about restController annotation
+81	difference between SQL  BETWEEN & IN opertation
+82	how to find the number of employess in departments
+83	when do we get internal server error
+84	Previous company Project details and architecture
+85	Write code to assume you have list of music songs, Whenever end-user press next button then song need to play but that song should not be played in the past 5 songs
+86	Internal working of HashMap
+87	Find the occurence of character given string and time complecity should be O(n)
+88	Which data structure sutaible to find given string brackets balance or not
+89	Spring bean scope
+90	Difference between controller and restcontroller
+91	Find the first non-repeating character from a stream of characters
+92	Remove All Adjacent Duplicates In String
+93	Controller vsRestController
+94	Given an array of integers, print the Next Greater Element for every element. Elements for which no greater element exist, consider the next greater element as -1.
+	For the input array [11, 19, 23, 46, -5, 1, 45], the next greater elements for each element are as follows.
+	Element           NGE
+	      11      -->     19
+	      19      -->     23
+	      23      -->     46
+	      46      -->     -1
+	      -5      -->      1
+	       1       -->    45
+	      45      -->     -1
+95	ven an array of distinct elements. The task is to find all triplets in the array whose sum is zero.
+	  Input : arr[] = {4, -1, 1, 0, 5, -3, -9}
+	  Output : (4 -1  -3) (4, 5 , -9) (-1, 1, 0)
+
+96	Program to Move All Uppercase Characters to the end of the String. The uppercase characters must be in the same order as in the original string.
+	    Input    :prAsHaNT
+	    Output   :prsaAHNT
+
+97	How do you provide security to Kafka in cloud environment?
+98	Diff bw dynamoDB and normal databases? why do you pick dynamoDB in your project?
+99	Multi threading programming questions?
+100	How do combind all service response as single response in Rest API?
+101	Write RESI API implementation for given scenario?
+102	Find freequency an element in an array without using API methods?
+103	Find duplucates in an array. With O(n) complexity
+104	Find duplicates between two arrays of any size. With O(n) complexity
+105	Find subset of array which is having addition of elements equals to given number (Subset Sum Problem). with n log n complexity
+106	Implement linked list in java from scratch and search of given element exist in the linkedlist or not
+107	remove duplicate using stream java 8
+108	types of map in java.. what is weakhashmap, identityhashmap
+109	intermidiate and terminal operation in java stream
+110	SOLID design principle, Dependency injection
+111	What is heap? min heap and max heap
+112	how spring bootstrap works
+113	How dependency injection works in spring
+114	List components of spring that you have used like spring core etc
+115	which design pattern you have used. what is adapter design pattern
+116	microservice vs monolithic. when to choose microservice
+117	parallel stream vs seqential stream java 8
+118	Balanced tree implementation
+119	Binary search tree algorithm explaination + implementation for insertion,deletion,different traversals etc.
+120	Why is string Immutable in java and how do we convert our user defined DS as immutable.
+121	Suppose everytime a request is received in the controller,  an object is created in the memory(in the Heap. these are not persisted in DB.) How do we calculate the number of objects that are currently in memory without using thread dump for analysis or any other external tools to monitor.
+122	What are functional interfaces?
+123	Why can we write only functional interfaces as lambda expressions? why not anything else?
+124	Merge two different sorted Arrays into single Sorted array
+125	String reverse program time space constraint and time constraint formulas
+126	Spring boot Circuit breaker and its usage
+127	Spring boot disadvantages and advantages
+128	Difference between Mongo DB and Postgres sql
+129	SQL indexing for performance tuning
+130	Volatile,Transient key words usage and where we need to use
+131	Previous project Complete Architecture and technical flow
+132	Difference String, String buffer, String Builder
+133	Hashmap internal implementation and usage and it's working flow
+134	Java 8 features
+135	differences between marker interface and Functional interface
+136	REST API methods and it's use
+137	difference between ArrayList and LinkedList and where exactly these are preferrable
