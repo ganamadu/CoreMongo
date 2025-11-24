@@ -31,10 +31,7 @@ S No	Questions
 	t3.print();
 	Test1 t4=new Test2();
 	t4.print("ramana");
-
-
 	}
-
 	}
 5	Internal Working mechanism of HashMap?
 6	why we need to override HashMap? What happens if we are not overriding of HashMap?
@@ -43,10 +40,10 @@ S No	Questions
 9	Java 8 features?
 10	what is lambda expression?
 11	what is functional interface?
-12	1what is the difference between wait and sleep method?
-13	13how to create Threads and which one is better to create thread using Runnable or Thread Class?
-14	14what is Stream? What are the benefit using streams?
-15	15how to create singleton class?
+12	what is the difference between wait and sleep method?
+13	how to create Threads and which one is better to create thread using Runnable or Thread Class?
+14	what is Stream? What are the benefit using streams?
+15	how to create singleton class?
 16	what are the scopes of spring bean?
 17	what are stereotype annotations?
 18	how to inject beans in spring?
