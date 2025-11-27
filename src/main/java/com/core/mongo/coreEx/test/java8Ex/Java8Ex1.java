@@ -43,7 +43,6 @@ public class Java8Ex1 {
         System.out.println("\n Sum Of Digits: "+sumOfDigits);
 
 
-
     }
 
 }

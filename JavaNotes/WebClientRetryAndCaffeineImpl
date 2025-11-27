@@ -1,0 +1,44 @@
+protected <T, R> R post(@NonNull String url,
+           @NonNull final T body,
+           @NonNull final MultiValueMap<String, String> headersMap,
+           @NonNull ParameterizedTypeReference<R> responseType) {
+  return webClient.post().uri(url)
+      accept(MediaType.APPLICATION_JSON)
+      headers(httpHeaders -> httpHeaders.addAll(headersMap))
+      bodyValue(body)
+      retrieve()
+      onStatus(HttpStatusCode::is4xxClientError, this::handle4xxError)
+      onStatus(HttpStatusCode::is5xxServerError, this::handle5xxError)
+      bodyToMono(responseType)
+      retryWhen(reactor.util.retry.Retry.backoff(3, Duration.ofSeconds(2))
+          jitter(.75)
+          filter(throwable -> throwable instanceof RetryableException)
+          onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> new NonRetryableException("Retries Exhausted!", retrySignal.failure()))
+      )
+      onErrorMap(WebClientException.class, this::handleWebClientError)
+      block();
+
+}
+
+protected Throwable handleWebClientError(Throwable ex) {
+  return (new NonRetryableException(ex));
+}
+public class NonRetryableException extends RuntimeException {
+  public NonRetryableException(String message) {
+    super(message);
+  }
+
+  public NonRetryableException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  public NonRetryableException(Throwable cause) {
+    super(cause);
+  }
+}
+
+Caffeine Cache:
+private final Cache<String, UserDetailsDTO> userDetailsCache = Caffeine.newBuilder()
+   expireAfterWrite(Duration.ofMinutes(5))
+   maximumSize(1000)
+   build();

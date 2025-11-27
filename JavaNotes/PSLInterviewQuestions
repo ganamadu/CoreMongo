@@ -24,8 +24,8 @@ S No	Questions
 	// TODO Auto-generated method stub
 
 	Test1 t1=new Test1();
-	            t1.print();
-	            Test1 t2=new Test2();
+	t1.print();
+	Test1 t2=new Test2();
 	t2.print();
 	Test2 t3=new Test2();
 	t3.print();
@@ -115,7 +115,7 @@ S No	Questions
 82	how to find the number of employess in departments
 83	when do we get internal server error
 84	Previous company Project details and architecture
-85	Write code to assume you have list of music songs, Whenever end-user press next button then song need to play but that song should not be played in the past 5 songs
+85	Write code to assume you have list of music songs, Whenever end-user press next button then song need to play but that song should not be played in the past 5 songs
 86	Internal working of HashMap
 87	Find the occurence of character given string and time complecity should be O(n)
 88	Which data structure sutaible to find given string brackets balance or not
@@ -145,7 +145,7 @@ S No	Questions
 97	How do you provide security to Kafka in cloud environment?
 98	Diff bw dynamoDB and normal databases? why do you pick dynamoDB in your project?
 99	Multi threading programming questions?
-100	How do combind all service response as single response in Rest API?
+100	How do combined all service response as single response in Rest API?
 101	Write RESI API implementation for given scenario?
 102	Find freequency an element in an array without using API methods?
 103	Find duplucates in an array. With O(n) complexity
