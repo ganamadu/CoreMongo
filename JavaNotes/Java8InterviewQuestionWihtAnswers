@@ -1,0 +1,57 @@
+#Create the maps from personList based on given factor.
+
+//How many maps you want to split the Maps based on factor.
+//For example my personList size is 100, i want to split data to 3 Maps.
+List<Map<Integer, Person>> personMaps = splitPersons(personList, 3);
+
+public static List<Map<Integer, Person>> splitPersons(List<Person> personList, int factor) {
+        int total = personList.size();
+        int chunkSize = (int) Math.ceil((double) total / factor); //Review the logic
+        List<Map<Integer, Person>> result = new ArrayList<>();
+        for (int i = 0; i < factor; i++) {
+            int from = (i * chunkSize) + 1;  //Review
+            int to = Math.min((i + 1) * chunkSize, total); //Review
+
+            Map<Integer, Person> subMap = personList.stream()
+                    .filter(p -> p.getNo() >= from && p.getNo() <= to)
+                    .collect(Collectors.toMap(Person::getNo, Function.identity()));
+            result.add(subMap);
+        }
+        return result;
+    }
+
+ ---------------------------------------------
+
+ // I want sort the Map Values using java8.
+Map<String, Integer> empMap = empList.stream().collect(Collectors.toMap(Emp::getEname, Emp::getSal));
+System.out.println("/n Before Sorting: "+empMap);
+System.out.println("/n After Sorting:");
+empMap.entrySet().stream().sorted(Map.Entry.comparingByValue()).forEach(m-> System.out.println(m.getKey()+" "+m.getValue()));
+personMap.entrySet().stream().sorted(Map.Entry.comparingByValue(Comparator.comparing(m->m.getName()))); //Refer
+
+
+//print all non-repeated and repeated characters from a string while keeping the original order.
+String str = "ganapathi";
+        str.chars().mapToObj(c->(char)c).forEach(System.out::println);
+
+        str.chars().mapToObj(c->(char)c).collect(Collectors.groupingBy(c->c, Collectors.counting()))
+                .forEach((k,v)->{
+                    System.out.println("Character: "+k+" Value: "+v);
+                });
+
+        //Print the All Non-Repeated character
+        str.chars().mapToObj(c->(char)c).collect(Collectors.groupingBy(c->c, Collectors.counting()))
+                .entrySet()
+                .stream()
+                .filter(e->e.getValue() == 1)
+                .map(Map.Entry::getKey)
+                .forEach(System.out::println);
+
+        System.out.println();
+        //Print the All Repeated character
+        str.chars().mapToObj(c->(char)c).collect(Collectors.groupingBy(c->c, Collectors.counting()))
+                .entrySet()
+                .stream()
+                .filter(e->e.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .forEach(System.out::println);

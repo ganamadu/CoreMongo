@@ -13,7 +13,7 @@ public class Java8TestEx {
 
     public static void main(String args[]) throws IOException {
 
-        String filePath = "/home/thanni/Documents/Intellij-workspace/CoreMongo/src/main/resources/employee.emp.json";
+        String filePath = "src/main/resources/employee.emp.json";
 
         List<Emp> empList = DBUtil.readEmployeeJson(filePath);
 
@@ -70,6 +70,12 @@ public class Java8TestEx {
 
         Emp secondHighestSal = empList.stream().sorted(Comparator.comparing(Emp::getSal).reversed()).skip(1).findFirst().get();
         System.out.println(secondHighestSal.getSal());
+
+        List<String> strList = new ArrayList<>(Arrays.asList("One","Two","Three","Four","Five"));
+        System.out.println("Before list: "+strList);
+        strList.removeIf(str -> str.equals("Three"));
+        System.out.println("After list: "+strList);
+
 
     }
 
