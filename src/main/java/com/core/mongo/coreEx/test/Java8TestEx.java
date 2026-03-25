@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Java8TestEx {
@@ -75,6 +76,65 @@ public class Java8TestEx {
         System.out.println("Before list: "+strList);
         strList.removeIf(str -> str.equals("Three"));
         System.out.println("After list: "+strList);
+
+        System.out.println("Statics of Sal:");
+        empList.stream()
+                .collect(Collectors.groupingBy(Emp::getDeptno, Collectors.summarizingInt(Emp::getSal)))
+                .entrySet()
+                .forEach(m->{
+                    System.out.println("--------------------");
+                    System.out.println("Dept No: "+m.getKey());
+                    System.out.println("Emp Count: "+m.getValue().getCount());
+                    System.out.println("Max Sal: "+m.getValue().getMax());
+                    System.out.println("Min Sal: "+m.getValue().getMin());
+                    System.out.println("Avg Sal: "+m.getValue().getAverage());
+                    System.out.println("Sum Of Sal: "+m.getValue().getSum());
+                    System.out.println("--------------------");
+                });
+
+        System.out.println("Statics of Comm:");
+        empList.stream()
+                .collect(Collectors.groupingBy(Emp::getDeptno, Collectors.summarizingInt(e->Optional.ofNullable(e.getComm()).orElse(0))))
+                .entrySet()
+                .forEach(m->{
+                    System.out.println("--------------------");
+                    System.out.println("Dept No: "+m.getKey());
+                    System.out.println("Emp Count: "+m.getValue().getCount());
+                    System.out.println("Max Comm: "+m.getValue().getMax());
+                    System.out.println("Min Comm: "+m.getValue().getMin());
+                    System.out.println("Avg Comm: "+m.getValue().getAverage());
+                    System.out.println("Sum Of Comm: "+m.getValue().getSum());
+                    System.out.println("--------------------");
+                });
+
+        System.out.println("Even or Odd Numbers: ");
+        Map<Boolean, List<Integer>> evenOrOddNum = IntStream.rangeClosed(1, 10)
+                .boxed()
+                .collect(Collectors.partitioningBy(n -> n % 2 == 0));
+        System.out.println("Even Num: "+evenOrOddNum.get(true));
+        System.out.println("Odd Num: "+evenOrOddNum.get(false));
+
+        System.out.println("Reduce Numbers: ");
+        Integer sumOfInt = IntStream.rangeClosed(1, 10)
+                .boxed()
+                .reduce(Integer::sum).get();
+        System.out.println("Sum Of Int: "+sumOfInt);
+
+        System.out.println("Random Num: ");
+        Stream.generate(()->new Random().nextInt(100))
+                .distinct()
+                .limit(10)
+                .forEach(System.out::println);
+
+        System.out.println("Iterate Num: ");
+        Stream.iterate(1,n->n+1)
+                .limit(10)
+                .forEach(System.out::println);
+
+        System.out.println("Print the InteList values:");
+        List<Integer> intlist = Arrays.asList(7,5,9,2,6,1,3,null);
+        intlist.stream().sorted(Comparator.nullsFirst(Integer::compareTo))
+                .forEach(System.out::println);
 
 
     }

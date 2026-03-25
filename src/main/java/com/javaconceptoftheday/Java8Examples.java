@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Java8Examples {
 
@@ -76,6 +77,10 @@ public class Java8Examples {
                 });
 
         //9037040508
+
+        String str = "java concept";
+        Stream<Character> characterStream = str.chars().mapToObj(c -> (char) c);
+
 
     }
 
