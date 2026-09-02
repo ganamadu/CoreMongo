@@ -43,6 +43,10 @@ public class Ex1 {
                 .findFirst()
                 .get();
 
+        int x = 10;
+        System.out.println(x++ + ++x);
+        System.out.println(x++ + 1);
+
 
     }
 

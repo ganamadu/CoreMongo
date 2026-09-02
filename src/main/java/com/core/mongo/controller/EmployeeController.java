@@ -19,7 +19,9 @@ public class EmployeeController {
 
     @GetMapping("/hello")
     public String hello() {
-        return "Hello...";
+       String str = "Hello...";
+       System.out.println("Response: "+str);
+        return str;
     }
 
     @GetMapping

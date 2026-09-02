@@ -94,11 +94,6 @@ public class Java8StreamEx {
                 .sorted(Map.Entry.comparingByValue(Comparator.comparing(Emp::getSal)
                         .thenComparing(Emp::getEname)))
                 .forEach(m->System.out.println(m.getValue().getSal()+" "+m.getValue().getEname()));
-
-
-
-
     }
-
 
 }

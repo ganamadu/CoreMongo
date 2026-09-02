@@ -13,9 +13,9 @@ public class CalculationEx {
             if (b == 0) throw new ArithmeticException("Division by zero");
             return a / b;
         };
-        Calculator multiplication = (int a, int b) -> a+b;
+        Calculator multiplication = (int a, int b) -> a*b;
 
-        int a = 5, b =10;
+        int a = 10, b =5;
         System.out.println(addition.calculate(a,b));
         System.out.println(subtract.calculate(a,b));
         System.out.println(division.calculate(a,b));

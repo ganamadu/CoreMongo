@@ -8,13 +8,10 @@ import java.util.stream.IntStream;
 public class SplitListBasedOnFactor {
 
     public static void main(String args[]) {
-
         System.out.println(Math.ceil(13/2));
         System.out.println(Math.min(13/4, 13/3));
         System.out.println(Math.max(13/4, 13/3));
-
         splitList((IntStream.range(1,55).boxed().collect(Collectors.toList())), 4);
-
     }
 
     public static void splitList(List<Integer> intList, int factor) {
@@ -27,8 +24,6 @@ public class SplitListBasedOnFactor {
             int to = Math.min((i + 1) * chunkSize, total);
             System.out.println("From: "+from+" To: "+to);
         }
-
-
     }
 
 }

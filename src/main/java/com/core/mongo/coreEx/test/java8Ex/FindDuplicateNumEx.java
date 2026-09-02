@@ -45,10 +45,7 @@ public class FindDuplicateNumEx {
         Integer reduceNumCount = IntStream.range(1,9).boxed().reduce(0, (a,b)->a+b).intValue();
         System.out.println("\n Reduc: "+reduceNumCount);
     }
-
-
     public static boolean isPrime(int num) {
        return IntStream.rangeClosed(2, num/2).noneMatch(i->num%i==0);
     }
-
 }

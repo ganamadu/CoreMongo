@@ -12,9 +12,7 @@ public class Java8Ex1 {
     }
 
     public static void main(String args[]) {
-
         IntStream.rangeClosed(2, 100).filter(n->isPrime(n)).forEach(System.out::println);
-
         System.out.println("\n Print Even Odd Numbers: ");
         Map<Boolean, List<Integer>> evenOddNum = IntStream.rangeClosed(1, 10).boxed().collect(Collectors.partitioningBy(i -> i % 2 == 0));
         List<Integer> evneNumList = evenOddNum.get(true);
@@ -41,8 +39,6 @@ public class Java8Ex1 {
         int num = 156732;
         Integer sumOfDigits = Stream.of(String.valueOf(num).split("")).collect(Collectors.summingInt(Integer::parseInt));
         System.out.println("\n Sum Of Digits: "+sumOfDigits);
-
-
     }
 
 }

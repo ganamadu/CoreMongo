@@ -56,6 +56,28 @@ public class StringVowelsCountEx {
         System.out.println(str1.indexOf('b'));
         System.out.println(str1.indexOf('c'));
 
+        String name = "Madu Ganapathi";
+        Map<String, Map<Character, Long>> nameVowelCount = Arrays.stream(name.split(" "))
+                .collect(Collectors.toMap(
+                        w -> w,
+                        w -> w.toLowerCase()
+                                .chars()
+                                .mapToObj(c -> (char) c)
+                                .filter(c -> "aeiou".indexOf(c) != -1)
+                                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                ));
+        System.out.println("Name Vowel Count: "+nameVowelCount);
+
+        Map<String, Long> nameCount = Arrays.stream(name.split(" "))
+                        .collect(Collectors.toMap(
+                           w->w,
+                                w->w.toLowerCase()
+                                        .chars()
+                                        .filter(c->"aeiou".indexOf(c) != -1)
+                                        .count()
+                        ));
+        System.out.println("Name Vowel Count: "+nameCount);
+
     }
 
 }
